@@ -1,0 +1,37 @@
+# Environment & Secrets
+.env
+.venv/
+venv/
+
+# OS & IDE
+.DS_Store
+.idea/
+.vscode/
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.mplconfig/
+
+# Large Model Weights & Caches
+.cache/
+models/
+mlx_models/
+nict_tib1_lhasa_whisper_small_ct2/
+openpecha_op-whisper_small-ft-v2/
+google-cloud-sdk/
+voxlect-main/
+fail-triage-mvp/
+
+# Raw & Sliced Audio Files
+*.mp3
+*.wav
+*.m4a
+*.flac
+audio_5min/
+
+# Transcript Outputs
+out/
+910824D_p081/
+*.mp3.txt
+*.mp3_refined.txt
+*.mp3.rtf
