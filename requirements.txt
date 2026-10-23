@@ -1,2 +1,23 @@
-google-genai
+# Core PyTorch and Hugging Face Stack
+torch>=2.2.0
+torchaudio>=2.2.0
+transformers>=4.40.0
+huggingface-hub>=0.20.0
+
+# Audio I/O, VAD, and WhisperX
+ffmpeg-python>=0.2.0
+whisperx>=3.1.1
+pyannote.audio>=3.1.0
+
+# Tibetan & Chinese NLP / Romanization
+opencc-python-reimplemented>=0.1.7
+pyewts>=0.2.0
+
+# Acoustic CTC & Language Model Decoding
+pyctcdecode>=0.5.0
+kenlm>=0.2.0
+
+# Vertex AI / Gemini Integration
+google-genai>=1.0.0
 google-cloud-storage>=3.4.1
+httpx>=0.27.0

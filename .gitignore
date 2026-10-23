@@ -31,7 +31,11 @@ audio_5min/
 
 # Transcript Outputs
 out/
+900121b_P001/
+900121c_P001/
+910824B_p079/
 910824D_p081/
+911019A_p084/
 *.mp3.txt
 *.mp3_refined.txt
 *.mp3.rtf
