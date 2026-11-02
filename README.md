@@ -142,6 +142,7 @@ options:
   --no-vertex           Skip Pass 2 Vertex AI orthography restoration & translation
   --vertex-model        Override Gemini model ID (default: gemini-3.1-pro-preview)
   --api-key             Google Cloud API key for express mode
+  --thinking-level      Vertex AI thinking level ('LOW' for cost saving, 'HIGH' for deep reasoning; default: LOW)
 ```
 
 ---

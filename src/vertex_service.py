@@ -293,16 +293,21 @@ def translate_tibetan_segments(
                 parsed_payload = getattr(response, "parsed", None)
                 if isinstance(parsed_payload, list) and parsed_payload:
                     translated_items = [item for item in parsed_payload if isinstance(item, dict)]
-                    break
+                else:
+                    response_text = getattr(response, "text", None) or ""
+                    if response_text.strip():
+                        translated_items = _parse_raw_json_array(response_text, strict=(attempt < attempts))
 
-                response_text = getattr(response, "text", None) or ""
-                if not response_text.strip():
-                    if attempt < attempts:
-                        continue
-                    break
-
-                translated_items = _parse_raw_json_array(response_text, strict=(attempt < attempts))
                 if translated_items:
+                    um = getattr(response, "usage_metadata", None)
+                    if um:
+                        p_tok = getattr(um, "prompt_token_count", 0) or 0
+                        c_tok = getattr(um, "candidates_token_count", 0) or 0
+                        t_tok = getattr(um, "thoughts_token_count", 0) or 0
+                        print(
+                            f"[Vertex AI] Translated {len(translated_items)} segment(s) "
+                            f"(prompt: {p_tok}, output: {c_tok}, thoughts: {t_tok} tokens)"
+                        )
                     break
             except Exception as exc:
                 if attempt < attempts:

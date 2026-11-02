@@ -91,6 +91,12 @@ def main() -> None:
         default=None,
         help="Google Cloud API key for Vertex AI express mode",
     )
+    parser.add_argument(
+        "--thinking-level",
+        choices=["LOW", "HIGH", "low", "high"],
+        default=None,
+        help="Vertex AI Gemini thinking level ('LOW' for cost saving, 'HIGH' for deep reasoning)",
+    )
 
     args = parser.parse_args()
 
@@ -100,6 +106,8 @@ def main() -> None:
         v_cfg["enabled"] = False
     if args.vertex_model:
         v_cfg["model_name"] = args.vertex_model
+    if args.thinking_level:
+        v_cfg["thinking_level"] = args.thinking_level.upper()
     if args.api_key:
         v_cfg["api_key"] = args.api_key
 
