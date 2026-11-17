@@ -27,6 +27,7 @@ CHUNK_DURATION_MIN = 5
 
 # --- Model Registries ---
 ZH_ASR_MODEL = "deepdml/faster-whisper-large-v3-turbo-ct2"
+ZH_ANCHOR_MODEL = "Systran/faster-whisper-base"
 ZH_ALIGN_MODEL = "jonatasgrosman/wav2vec2-large-xlsr-53-chinese-zh-cn"
 BO_MPS_WHISPER_MODEL = "openpecha/op-whisper_small-ft-v2"
 BO_ALIGN_MODEL = "openpecha/op-wav2vec2-ft-v17"
@@ -59,6 +60,20 @@ LAMRIM_PRESETS: dict[str, str] = {
 - 阿底峽尊者（ཇོ་བོ་རྗེ་དཔལ་ལྡན་ཨ་ཏི་ཤ / མར་མེ་མཛད་དཔལ་ཡེ་ཤེས）、宗喀巴大師（རྗེ་ཙོང་ཁ་པ）
 - 造者殊勝（མཛད་པ་པོ་ཆེ་བའི་ཡོན་ཏན）、法殊勝（ཆོས་ཀྱི་ཆེ་བའི་ཡོན་ཏན）、如何講聞相應正法（ཆོས་ཇི་ལྟར་ཉན་བཤད་བྱ་བའི་ཚུལ）
 """.strip(),
+    "73": """
+《菩提道次第廣論》道前基礎～共下士道（約第 72~76 頁：於暇滿依如何取心要之理、次第引導）
+- 科判：依已如何修心之理（ཐོག་མར་བསྟེན་ནས་བློ་ཇི་ལྟར་སྦྱང་བ）、於暇滿依如何取心要之理（དལ་བའི་རྟེན་ལ་སྙིང་པོ་ལེན་པའི་ཚུལ）、勸取暇滿大義（དལ་བའི་རྟེན་ལ་སྙིང་པོ་བླང་བའི་ཆེད་དུ་བསྐུལ་བ）、第二正明取心要之理分三（གཉིས་པ་སྙིང་པོ་ལེན་ཚུལ་དངོས་ལ་གསུམ）
+- 三士道次科判：於共下士道次修心（སྐྱེས་བུ་ཆུང་ངུ་དང་ཐུན་མོང་བའི་ལམ་གྱི་རིམ་པ）、共中士（འབྲིང་དང་ཐུན་མོང་བའི་ལམ་）、上士（སྐྱེས་བུ་ཆེན་པོའི་ལམ་）；修下士意樂（ཆུང་ངུའི་བསམ་པ་སྦྱང་བ）、彼生起之量（དེ་སྐྱེས་པའི་ཚད）、除遣此中邪執（དེ་ལ་ལོག་རྟོག་སེལ་བ）
+- 聖天菩薩《四百論》（ཨཱརྱ་དེ་བའི་བཞི་བརྒྱ་པ）：བསོད་ནམས་མིན་པ་དང་པོར་བཟློག །བར་དུ་བདག་ནི་བཟློག་པ་དང་། །ཐ་མར་ལྟ་ཞིག་ཀུན་བཟློག་ནས། །དེ་ལྟར་ཤེས་དེ་མཁས་པ་ཡིན། །（先遮止非福，中應遣除我，後遮一切見，若知此為智）
+- 密咒與共道基礎：諸極利根中最利根者（དབང་པོ་ཆེས་ཤིན་ཏུ་རྣོ་བ）、比佛還稀有的金剛乘，是二種悉地之寶藏的甚深義（སངས་རྒྱས་ལས་ཀྱང་དཀོན་པའི་རྡོ་རྗེ་ཐེག་པ། དངོས་གྲུབ་གཉིས་ཀྱི་གཏེར་གྱུར་ཟབ་མོའི་དོན།）
+- 暇滿與名相：八暇十滿（དལ་བརྒྱད་འབྱོར་བཅུ）、十八暇滿（དལ་འབྱོར་བཅོ་བརྒྱད）、增上生（མངོན་པར་མཐོ་བ）、決定勝（ངེས་ལེགས）
+""".strip(),
+    "77": """
+《菩提道次第廣論》共下士道・正修念死無常前（約第 77~78 頁：念死四科判、常人怖畏死法）
+- 念死四科判：未修念死過患（མ་བསྒོམས་པའི་ཉེས་དམིགས）、修習勝利（བསྒོམས་པའི་ཕན་ཡོན）、當發何等念死之心（འཆི་བ་དྲན་པའི་བློ་གང་ཞིག་བསྐྱེད་པ）、正修念死之理（ཇི་ལྟར་བསྒོམ་པའི་ཚུལ）
+- 常人怖畏死法 vs 修行人之念死心：怕與配偶、親友、財富分離而產生的苦受，只會令貪著更增長（ཆགས་པ་འཕེལ་）；當思惟自己具備思惟暇滿、後世、解脫與一切智之能力卻不去運用、白白死去之惋惜恐懼，方是《道次第》所說念死之心。
+- 善惡二趣對照：能言善解的人類（སྨྲ་ཤེས་དོན་གོ་བའི་འགྲོ་བ་མི）與愚癡被驅使之畜生（གླེན་ཞིང་གཏི་མུག་པའི་དུད་འགྲོ）。
+""".strip(),
     "79": """
 本堂課進度：《菩提道次第廣論》共下士道・思惟死無常・思惟決定死（第 79~80 頁）
 - 思惟壽命無增每日減少，中間生存之際全無不減壽量之時。
@@ -85,15 +100,40 @@ LAMRIM_PRESETS: dict[str, str] = {
 }
 
 
+def _collect_nearby_lamrim_presets(page_num: int, lookback: int = 8) -> str | None:
+    """Collects matching page preset plus nearby preceding presets (review context)."""
+    numeric_pages = sorted(int(k) for k in LAMRIM_PRESETS if k.isdigit())
+    matched = [p for p in numeric_pages if (page_num - lookback) <= p <= page_num]
+    if not matched:
+        return None
+    sections = [LAMRIM_PRESETS[str(p)] for p in matched]
+    return "\n\n".join(sections)
+
+
 def resolve_lamrim_reference(ref_arg: str | None) -> str:
-    """Resolves reference text from a page preset number, file path, or custom string."""
+    """Resolves reference text from a page preset/range (e.g. '81', '73-81'), file path, or custom string."""
     if not ref_arg:
         return LAMRIM_PRESETS["1"]
-    cleaned = str(ref_arg).strip().lower().lstrip("p").lstrip("0") or "0"
+    raw = str(ref_arg).strip()
+    cleaned = raw.lower().lstrip("p").lstrip("0") or "0"
+    if "-" in cleaned:
+        parts = [p.strip().lstrip("p").lstrip("0") or "0" for p in cleaned.split("-", 1)]
+        if all(p.isdigit() for p in parts):
+            lo, hi = int(parts[0]), int(parts[1])
+            if lo > hi:
+                lo, hi = hi, lo
+            numeric_pages = sorted(int(k) for k in LAMRIM_PRESETS if k.isdigit())
+            matched = [p for p in numeric_pages if lo <= p <= hi]
+            if matched:
+                return "\n\n".join(LAMRIM_PRESETS[str(p)] for p in matched)
+    if cleaned.isdigit():
+        combined = _collect_nearby_lamrim_presets(int(cleaned), lookback=8)
+        if combined:
+            return combined
     if cleaned in LAMRIM_PRESETS:
         return LAMRIM_PRESETS[cleaned]
-    if str(ref_arg).strip() in LAMRIM_PRESETS:
-        return LAMRIM_PRESETS[str(ref_arg).strip()]
+    if raw in LAMRIM_PRESETS:
+        return LAMRIM_PRESETS[raw]
     try:
         p = Path(ref_arg)
         if p.exists() and p.is_file():
@@ -101,7 +141,7 @@ def resolve_lamrim_reference(ref_arg: str | None) -> str:
     except OSError:
         # Long raw text strings are not valid file names; treat as raw reference text
         pass
-    return str(ref_arg).strip()
+    return raw
 
 
 # --- Vertex AI / Gemini Configuration ---
@@ -112,6 +152,9 @@ def get_vertex_config() -> dict[str, Any]:
     model_name = os.getenv("VERTEX_MODEL_NAME", "gemini-3.1-pro-preview")
     staging_gcs = os.getenv("VERTEX_STAGING_GCS_PREFIX", "gs://webuddhist/vertex-staging")
     thinking_level = os.getenv("VERTEX_THINKING_LEVEL", "LOW")
+    audio_grounding = os.getenv("VERTEX_AUDIO_GROUNDING", "turn").strip().lower()
+    if audio_grounding not in {"turn", "targeted", "none"}:
+        audio_grounding = "turn"
 
     return {
         "enabled": True,
@@ -123,6 +166,10 @@ def get_vertex_config() -> dict[str, Any]:
         "model_name": model_name,
         "staging_gcs_prefix": staging_gcs,
         "thinking_level": thinking_level,
+        "audio_grounding": audio_grounding,
+        "use_zh_anchor": os.getenv("USE_ZH_ANCHOR", "1").strip().lower() not in {"0", "false", "no"},
+        "enable_pass3_audit": os.getenv("ENABLE_PASS3_AUDIT", "1").strip().lower() not in {"0", "false", "no"},
+        "turn_chunking": os.getenv("TURN_CHUNKING", "1").strip().lower() not in {"0", "false", "no"},
         "max_output_tokens": int(os.getenv("VERTEX_MAX_OUTPUT_TOKENS", "65535")),
         "retry_attempts": int(os.getenv("VERTEX_RETRY_ATTEMPTS", "5")),
         "retry_initial_delay_sec": float(os.getenv("VERTEX_RETRY_INITIAL_DELAY_SEC", "5")),

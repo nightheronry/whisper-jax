@@ -143,6 +143,11 @@ options:
   --vertex-model        Override Gemini model ID (default: gemini-3.1-pro-preview)
   --api-key             Google Cloud API key for express mode
   --thinking-level      Vertex AI thinking level ('LOW' for cost saving, 'HIGH' for deep reasoning; default: LOW)
+  --audio-grounding     Attach original Tibetan MP3 audio per turn to Pass 2 Gemini ('turn' or 'none'; default: turn)
+  --no-zh-anchor        Disable fast Mandarin interpreter transcription anchor for bo_only disambiguation
+  --no-audit            Disable Pass 3 full-lecture doctrinal/polarity audit
+  --pass2-only          Re-run Pass 2 & Pass 3 from cached Pass 1 turn_checkpoints without re-running local ASR
+  --legacy-chunking     Use legacy fixed-duration ffmpeg chunking instead of turn-aware chunking
 ```
 
 ---
@@ -159,8 +164,9 @@ All outputs are saved to the designated output folder (defaults to `<audio_stem>
 | `bilingual_transcript.srt` | Subtitle file formatted with timestamps for video players (e.g. VLC, YouTube). |
 | `bilingual_transcript.rtf` | Rich Text Format document formatted by timestamped blocks for study and review. |
 | `speech_lang_timeline.csv` | Time-coded timeline of speech activity labeled with `bo` vs `zh`. |
-| `asr_blocks.json` | Coalesced speech blocks passed to acoustic recognition. |
-| `chunk_checkpoints/` | Per-chunk JSON checkpoints for resuming long batch jobs seamlessly. |
+| `asr_blocks.json` | Coalesced speaker turns/blocks passed to acoustic recognition. |
+| `diagnostic_report.json` | Token usage, estimated Vertex AI cost, and Pass 3 audit fix details. |
+| `turn_checkpoints/` | Cached global timeline, Pass 1 raw ASR drafts (`pass1_turn_*.json`), and Pass 2 outputs (`pass2_turn_*.json`). |
 
 ---
 
@@ -168,18 +174,19 @@ All outputs are saved to the designated output folder (defaults to `<audio_stem>
 
 ```mermaid
 flowchart TD
-    Audio["Long MP3 Audio"] --> Slice["ffmpeg Slicing (5-min chunks)"]
-    Slice --> VAD["Pyannote VAD + Mid-Segment Language Cut"]
-    VAD --> LID["Sliding Window LID (Tibetan vs Mandarin)"]
-    LID --> Blocks["Speech Block Merge & Tibetan Padding"]
-    Blocks --> PauseCut["Smart Pause Slicing (Min RMS Energy ~9s)"]
+    Audio["Long MP3 Audio"] --> VAD["Global Pyannote VAD + LID + Island Smoothing"]
+    VAD --> Turns["Turn-Aware Pairing (BO Geshe Turn + Paired ZH Interpreter Turn)"]
+    Turns --> PauseCut["Smart Pause Slicing (~9s)"]
     PauseCut --> Whisper["OpenPecha Whisper Small (MPS/CUDA)"]
-    PauseCut --> CTC["Wav2Vec2 CTC + BoKenlm 3-gram Beam Search"]
-    CTC --> Gate["CTC Syllable Gating (Hallucination Truncation)"]
-    Whisper --> Gate
-    Gate --> Pass1["Pass 1 Acoustic Transcripts"]
-    Pass1 --> Gemini["Pass 2: Vertex AI Gemini 3.1 Pro + Lamrim Glossary"]
-    Gemini --> Exporters["Export: CSV, JSON, SRT, RTF"]
+    PauseCut --> CTC["Wav2Vec2 CTC + BoKenlm 3-gram (Beam + Greedy)"]
+    Turns --> ZHAnchor["Fast Local Mandarin Anchor (faster-whisper-base int8)"]
+    CTC --> Pass1["Pass 1 Raw Acoustic Checkpoints"]
+    Whisper --> Pass1
+    Pass1 --> Gemini["Pass 2: Audio-Grounded Turn Gemini 3.1 Pro + ZH Anchor + Lamrim Glossary"]
+    ZHAnchor --> Gemini
+    Turns --> Gemini
+    Gemini --> Audit["Pass 3: Full-Lecture Doctrinal & Polarity Audit + Targeted Audio Re-listen"]
+    Audit --> Exporters["Export: CSV, JSON, SRT, RTF + diagnostic_report.json"]
 ```
 
 ---

@@ -97,6 +97,32 @@ def main() -> None:
         default=None,
         help="Vertex AI Gemini thinking level ('LOW' for cost saving, 'HIGH' for deep reasoning)",
     )
+    parser.add_argument(
+        "--audio-grounding",
+        choices=["turn", "none"],
+        default=None,
+        help="Attach original Tibetan MP3 audio per speaking turn to Pass 2 Gemini ('turn' or 'none')",
+    )
+    parser.add_argument(
+        "--no-zh-anchor",
+        action="store_true",
+        help="Disable fast Mandarin interpreter transcription anchor for bo_only disambiguation",
+    )
+    parser.add_argument(
+        "--no-audit",
+        action="store_true",
+        help="Disable Pass 3 full-lecture doctrinal/polarity audit and audio re-verification",
+    )
+    parser.add_argument(
+        "--pass2-only",
+        action="store_true",
+        help="Re-run Pass 2 & Pass 3 from cached Pass 1 turn_checkpoints without re-running local ASR",
+    )
+    parser.add_argument(
+        "--legacy-chunking",
+        action="store_true",
+        help="Use legacy fixed-duration ffmpeg chunking instead of turn-aware chunking",
+    )
 
     args = parser.parse_args()
 
@@ -108,6 +134,14 @@ def main() -> None:
         v_cfg["model_name"] = args.vertex_model
     if args.thinking_level:
         v_cfg["thinking_level"] = args.thinking_level.upper()
+    if args.audio_grounding:
+        v_cfg["audio_grounding"] = args.audio_grounding
+    if args.no_zh_anchor:
+        v_cfg["use_zh_anchor"] = False
+    if args.no_audit:
+        v_cfg["enable_pass3_audit"] = False
+    if args.legacy_chunking:
+        v_cfg["turn_chunking"] = False
     if args.api_key:
         v_cfg["api_key"] = args.api_key
 
@@ -122,6 +156,7 @@ def main() -> None:
             chunk_duration_min=args.chunk_duration,
             force_reprocess=args.force,
             vertex_config=v_cfg,
+            pass2_only=args.pass2_only,
         )
     except Exception as exc:
         print(f"\n[ERROR] Pipeline execution failed: {exc}", file=sys.stderr)

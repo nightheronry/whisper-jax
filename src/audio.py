@@ -2,6 +2,7 @@
 
 import math
 import os
+import subprocess
 from pathlib import Path
 from typing import Any
 import ffmpeg
@@ -332,6 +333,7 @@ def smooth_langs_binary(
     default_lang: str = "bo",
     max_zh_island_sec: float = 8.0,
     zh_strict_conf: float = 0.992,
+    max_flanked_zh_sec: float = 12.0,
 ) -> list[str]:
     """Smooths language tags and fixes brief pseudo-Chinese hallucination islands flanked by Tibetan."""
     out = seg_lang[:]
@@ -367,7 +369,160 @@ def smooth_langs_binary(
                     if float(seg_conf[i - 1]) >= 0.995 and float(seg_conf[i + 1]) >= 0.995:
                         out[i] = "zh"
 
+    # Absorb any short contiguous 'zh' island flanked on both sides by substantial 'bo' runs
+    if vad_segments is not None and max_flanked_zh_sec > 0:
+        i = 0
+        while i < n:
+            if out[i] != "zh":
+                i += 1
+                continue
+            j = i
+            while j < n and out[j] == "zh":
+                j += 1
+            island_dur = float(vad_segments[j - 1]["end"]) - float(vad_segments[i]["start"])
+            has_left_bo = i > 0 and out[i - 1] == "bo"
+            has_right_bo = j < n and out[j] == "bo"
+            if has_left_bo and has_right_bo and island_dur <= max_flanked_zh_sec:
+                for k in range(i, j):
+                    out[k] = "bo"
+            i = j
+
     return out
+
+
+def group_timeline_into_turns(
+    vad_segments: list[dict[str, Any]],
+    seg_lang: list[str],
+    max_bo_turn_sec: float = 280.0,
+    min_pause_split_sec: float = 0.6,
+) -> list[dict[str, Any]]:
+    """Groups contiguous same-language VAD segments into natural speaker turns.
+
+    In sequential Tibetan-Chinese teaching, a Geshe speaks a 2-4 minute 'bo' turn
+    followed by an interpreter's 'zh' turn. Grouping by natural speaker turns
+    eliminates mid-sentence hard cuts at arbitrary 5-minute boundaries and allows
+    each 'bo' turn to be paired with its immediately following 'zh' interpreter turn.
+    """
+    if not vad_segments:
+        return []
+
+    raw_runs: list[dict[str, Any]] = []
+    for seg, lang in zip(vad_segments, seg_lang):
+        if lang not in {"bo", "zh"}:
+            continue
+        item = {"start": float(seg["start"]), "end": float(seg["end"]), "lang": lang}
+        if raw_runs and raw_runs[-1]["lang"] == lang:
+            raw_runs[-1]["end"] = item["end"]
+            raw_runs[-1]["segments"].append(item)
+        else:
+            raw_runs.append(
+                {
+                    "lang": lang,
+                    "start": item["start"],
+                    "end": item["end"],
+                    "segments": [item],
+                }
+            )
+
+    # Split overly long continuous turns (e.g. solo lecture > max_bo_turn_sec) at widest pauses
+    turns: list[dict[str, Any]] = []
+    for run in raw_runs:
+        dur = run["end"] - run["start"]
+        if run["lang"] != "bo" or dur <= max_bo_turn_sec or len(run["segments"]) < 2:
+            turns.append(run)
+            continue
+
+        segs = run["segments"]
+        start_idx = 0
+        while start_idx < len(segs):
+            chunk_start_t = segs[start_idx]["start"]
+            end_idx = start_idx + 1
+            while end_idx < len(segs) and (segs[end_idx]["end"] - chunk_start_t) <= max_bo_turn_sec:
+                end_idx += 1
+
+            if end_idx >= len(segs):
+                sub_segs = segs[start_idx:]
+                turns.append(
+                    {
+                        "lang": "bo",
+                        "start": sub_segs[0]["start"],
+                        "end": sub_segs[-1]["end"],
+                        "segments": sub_segs,
+                    }
+                )
+                break
+
+            # Look back from end_idx within [max_bo_turn_sec * 0.55, max_bo_turn_sec] for widest pause
+            best_split = end_idx
+            best_gap = -1.0
+            for k in range(start_idx + 1, end_idx + 1):
+                if (segs[k - 1]["end"] - chunk_start_t) < max_bo_turn_sec * 0.5:
+                    continue
+                gap = segs[k]["start"] - segs[k - 1]["end"]
+                if gap >= min_pause_split_sec and gap > best_gap:
+                    best_gap = gap
+                    best_split = k
+                elif best_gap < 0 and gap > best_gap:
+                    best_gap = gap
+                    best_split = k
+
+            sub_segs = segs[start_idx:best_split]
+            turns.append(
+                {
+                    "lang": "bo",
+                    "start": sub_segs[0]["start"],
+                    "end": sub_segs[-1]["end"],
+                    "segments": sub_segs,
+                }
+            )
+            start_idx = best_split
+
+    # Index turns and link each 'bo' turn to the immediately following 'zh' turn (if any)
+    for idx, turn in enumerate(turns):
+        turn["turn_index"] = idx
+        turn["paired_zh_turn_index"] = None
+        if turn["lang"] == "bo":
+            for nxt in range(idx + 1, len(turns)):
+                if turns[nxt]["lang"] == "zh":
+                    turn["paired_zh_turn_index"] = nxt
+                    break
+                if turns[nxt]["lang"] == "bo":
+                    # Stop if another substantial bo turn appears before zh
+                    if (turns[nxt]["end"] - turns[nxt]["start"]) >= 8.0:
+                        break
+    return turns
+
+
+def encode_audio_slice_mp3_bytes(
+    audio_array: np.ndarray,
+    sample_rate: int = SAMPLE_RATE,
+    bitrate: str = "48k",
+) -> bytes:
+    """Encodes a mono float32 waveform array into compact MP3 bytes in memory via ffmpeg."""
+    pcm = np.asarray(audio_array, dtype=np.float32).tobytes()
+    cmd = [
+        "ffmpeg",
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-f",
+        "f32le",
+        "-ar",
+        str(int(sample_rate)),
+        "-ac",
+        "1",
+        "-i",
+        "pipe:0",
+        "-c:a",
+        "libmp3lame",
+        "-b:a",
+        bitrate,
+        "-f",
+        "mp3",
+        "pipe:1",
+    ]
+    proc = subprocess.run(cmd, input=pcm, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+    return proc.stdout
 
 
 def merge_for_asr(

@@ -16,6 +16,7 @@ from src.config import (
     BO_MPS_WHISPER_MODEL,
     SAMPLE_RATE,
     ZH_ALIGN_MODEL,
+    ZH_ANCHOR_MODEL,
     ZH_ASR_MODEL,
 )
 
@@ -247,11 +248,36 @@ def decode_wav2vec2_ctc_beam(
     return beam_txt or greedy_txt
 
 
+def transcribe_zh_anchor_text(zh_anchor_model: Any, audio_chunk: np.ndarray) -> str:
+    """Fast Mandarin transcription for interpreter disambiguation anchor (no alignment needed)."""
+    if zh_anchor_model is None or len(audio_chunk) < int(0.4 * SAMPLE_RATE):
+        return ""
+    try:
+        from faster_whisper import WhisperModel
+
+        fw_model = (
+            zh_anchor_model
+            if isinstance(zh_anchor_model, WhisperModel)
+            else getattr(zh_anchor_model, "model", zh_anchor_model)
+        )
+        segs, _ = fw_model.transcribe(
+            audio_chunk,
+            language="zh",
+            beam_size=1,
+            condition_on_previous_text=False,
+        )
+        return " ".join((s.text or "").strip() for s in segs).strip()
+    except Exception as e:
+        print(f"[WARN] zh_anchor transcription failed: {e}")
+        return ""
+
+
 def load_all_models(
     device: str,
     compute_type: str,
     transcribe_zh: bool = False,
     use_mps_for_bo: bool = True,
+    load_zh_anchor: bool = True,
 ) -> dict[str, Any]:
     """Loads and returns all requested ASR, Alignment, and VAD models."""
     print(f"Loading models on device={device} (compute_type={compute_type})...")
@@ -263,7 +289,19 @@ def load_all_models(
         compute_type=compute_type if device != "mps" else "float32",
         language="zh",
     )
-    asr_models = {"zh": zh_model}
+    asr_models: dict[str, Any] = {"zh": zh_model}
+
+    # 1b. Fast Chinese Anchor model for bo_only interpreter disambiguation (30x realtime on CPU int8)
+    if load_zh_anchor and not transcribe_zh:
+        try:
+            from faster_whisper import WhisperModel
+
+            anchor_dev = device if device == "cuda" else "cpu"
+            anchor_ct = "float16" if device == "cuda" else "int8"
+            asr_models["zh_anchor"] = WhisperModel(ZH_ANCHOR_MODEL, device=anchor_dev, compute_type=anchor_ct)
+        except Exception as e:
+            print(f"[WARN] Fast zh_anchor model ({ZH_ANCHOR_MODEL}) unavailable ({e}); falling back to zh_model.")
+            asr_models["zh_anchor"] = zh_model
 
     # 2. Tibetan ASR
     if use_mps_for_bo and device == "mps":
